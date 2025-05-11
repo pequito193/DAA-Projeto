@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
+import PIL as pillow
 
 class SeamCarving:
     # CONSTRUTOR
@@ -14,6 +15,16 @@ class SeamCarving:
         # Primeiro inicializamos a matriz de energia com zeros
         energy = np.zeros((self.height, self.width))
 
+        # Os pixeis fronteiriços estavam constantemente a causar problemas, então decidimos dar-lhes um valor fixo elevado para não serem escolhidos
+        energy[0, :] = 1000
+        energy[-1, :] = 1000
+        energy[:, 0] = 1000
+        energy[:, -1] = 1000
+
+        # 3.2.2 - Análise da complexidade
+        # A complexidade em relação ao tempo é O(altura*largura), porque percorremos cada pixel da imagem e calculamos o seu gradiente.
+        # Podemos concluir que a complexidade é linear em relação ao número de pixels da imagem.
+        # A complexidade em relação ao espaço é O(altura*largura), porque armazenamos a matriz de energia com o mesmo tamanho da imagem original.
         for y in range(1, self.height - 1):
             for x in range(1, self.width - 1):
                 # Calcula o gradiente em x
@@ -35,48 +46,50 @@ class SeamCarving:
 
     # 3.3.2
     def find_vertical_seam(self):
-        # Matriz para armazenar o custo acumulado
-        dist_to = np.full((self.height, self.width), np.inf)
-
-        # Matriz para armazenar o caminho (pixel anterior)
-        edge_to = np.zeros((self.height, self.width), dtype=np.int32)
-
-        # Inicializamos a primeira linha com os valores de energia
-        dist_to[0] = self.energy_map[0]
-
-        # Preenchemos as linhas seguintes
+        cost = np.copy(self.energy_map)
+        path = np.zeros((self.height, self.width), dtype=np.int32)
+        
         for y in range(1, self.height):
             for x in range(self.width):
-                # Pixel da esquerda e direita, bem como o próprio pixel
-                for dx in [-1, 0, 1]:
-                    prev_x = x + dx
-                    if 0 <= prev_x < self.width:
-                        if dist_to[y, x] > dist_to[y - 1, prev_x] + self.energy_map[y, x]:
-                            dist_to[y, x] = dist_to[y - 1, prev_x] + self.energy_map[y, x]
-                            edge_to[y, x] = prev_x
-
-        # Encontra o pixel final com menor custo na última linha
-        min_end = np.argmin(dist_to[-1])
-        seam = []
-
-        # Reconstrói o caminho de menor custo
-        for y in range(self.height - 1, -1, -1):
-            seam.append((y, min_end))
-            min_end = edge_to[y, min_end]
-
-        # Invertemos a ordem para obter o caminho na ordem correta
-        seam.reverse()
+                # Para cada pixel, verificamos os 3 pixeis acima dele
+                if x == 0:
+                    candidates = cost[y-1, 0:2]
+                    min = np.argmin(candidates)
+                    cost[y, x] += candidates[min]
+                    path[y, x] = min
+                elif x == self.width - 1:
+                    candidates = cost[y-1, x-1:x+1]
+                    min = np.argmin(candidates)
+                    cost[y, x] += candidates[min]
+                    path[y, x] = x - 1 + min
+                else:
+                    candidates = cost[y-1, x-1:x+2]
+                    min = np.argmin(candidates)
+                    cost[y, x] += candidates[min]
+                    path[y, x] = x - 1 + min
+        
+        # Vamos a procura do caminho de menor energia
+        seam = np.zeros(self.height, dtype=np.int32)
+        seam[-1] = np.argmin(cost[-1, :])
+        
+        # Finalmente, fazemos o backtracking
+        for y in range(self.height - 1, 0, -1):
+            seam[y-1] = path[y, seam[y]]
+            
         return seam
 
     # 3.4.1
     def remove_vertical_seam(self, seam):
-        H, W, _ = self.image.shape
-        new_image = np.zeros((H, W - 1, 3), dtype=self.image.dtype)
-
-        for y, x in seam:
-            # Dá delete ao pixel da seam na linha y
-            new_image[y, :, :] = np.delete(self.image[y, :, :], x, axis=0)
-
+        # Criamos uma nova imagem com um pixel a menos de largura (largura porque quando queremos reduzir a altura, rodamos a imagem 90 graus)
+        new_image = np.zeros((self.height, self.width - 1, 3), dtype=self.image.dtype)
+        
+        # Copiamos a imagem original menos a seam que queremos remover
+        for y in range(self.height):
+            # Pixeis antes da seam
+            new_image[y, 0:seam[y], :] = self.image[y, 0:seam[y], :]
+            # Pixeis depois da seam
+            new_image[y, seam[y]:, :] = self.image[y, seam[y]+1:, :]
+        
         self.image = new_image
         self.height, self.width = new_image.shape[:2]
         self.energy_map = self._calculate_energy()
@@ -124,9 +137,12 @@ imagem_2 = mpimg.imread("img-brent-cox-unsplash.jpg")
 energyMap_1 = get_energy_map(imagem_1)
 energyMap_2 = get_energy_map(imagem_2)
 
-nova_imagem = resize_image(imagem_1, width_factor=0.9)
-#nova_imagem = resize_image(imagem_2, height_factor=0.6)
+nova_imagem_1 = resize_image(imagem_1, width_factor=0.9)
+nova_imagem_2 = resize_image(imagem_2, height_factor=0.6)
 
 # O resultado:
-plt.imshow(nova_imagem)
+plt.imshow(nova_imagem_1)
+plt.show()
+
+plt.imshow(nova_imagem_2)
 plt.show()
