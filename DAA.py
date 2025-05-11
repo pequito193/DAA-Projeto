@@ -137,7 +137,7 @@ imagem_2 = mpimg.imread("img-brent-cox-unsplash.jpg")
 energyMap_1 = get_energy_map(imagem_1)
 energyMap_2 = get_energy_map(imagem_2)
 
-nova_imagem_1 = resize_image(imagem_1, width_factor=0.9)
+nova_imagem_1 = resize_image(imagem_1, width_factor=0.7)
 nova_imagem_2 = resize_image(imagem_2, height_factor=0.6)
 
 # O resultado:
