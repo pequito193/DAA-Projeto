@@ -148,11 +148,8 @@ def resize_image(image, width_factor=None, height_factor=None):
 
 
 # E agora testamos tudo
-#imagem_1 = mpimg.imread("img-broadway_tower.jpg")
-#imagem_2 = mpimg.imread("img-brent-cox-unsplash.jpg")
-from PIL import Image
-imagem_1 = np.array(Image.open("img-broadway_tower.jpg"))
-imagem_2 = np.array(Image.open("img-brent-cox-unsplash.jpg"))
+imagem_1 = mpimg.imread("img-broadway_tower.jpg")
+imagem_2 = mpimg.imread("img-brent-cox-unsplash.jpg")
 
 energyMap_1 = get_energy_map(imagem_1)
 energyMap_2 = get_energy_map(imagem_2)
