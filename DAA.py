@@ -34,7 +34,7 @@ class SeamCarving:
         return energy
 
     # 3.3.2
-    def find_vertical_steam(self):
+    def find_vertical_seam(self):
         # Matriz para armazenar o custo acumulado
         dist_to = np.full((self.height, self.width), np.inf)
 
@@ -69,7 +69,7 @@ class SeamCarving:
         return seam
 
     # 3.4.1
-    def remove_vertical_steam(self, seam):
+    def remove_vertical_seam(self, seam):
         H, W, _ = self.image.shape
         new_image = np.zeros((H, W - 1, 3), dtype=self.image.dtype)
 
@@ -98,8 +98,8 @@ def resize_image(image, width_factor=None, height_factor=None):
     if width_factor:
         new_width = int(sc.width * width_factor)
         while sc.width > new_width:
-            seam = sc.find_vertical_steam()
-            sc.remove_vertical_steam(seam)
+            seam = sc.find_vertical_seam()
+            sc.remove_vertical_seam(seam)
     
     # Para a altura:
     if height_factor:
@@ -108,8 +108,8 @@ def resize_image(image, width_factor=None, height_factor=None):
         sc.height, sc.width = sc.width, sc.height
         sc.energy_map = sc._calculate_energy()
         while sc.width > new_height:
-            seam = sc.find_vertical_steam()
-            sc.remove_vertical_steam(seam)
+            seam = sc.find_vertical_seam()
+            sc.remove_vertical_seam(seam)
         sc.image = np.transpose(sc.image, (1, 0, 2))
         sc.height, sc.width = sc.width, sc.height
         sc.energy_map = sc._calculate_energy()
@@ -124,9 +124,9 @@ imagem_2 = mpimg.imread("img-brent-cox-unsplash.jpg")
 energyMap_1 = get_energy_map(imagem_1)
 energyMap_2 = get_energy_map(imagem_2)
 
-nova_imagem_1 = resize_image(imagem_1, width_factor=0.7)
-#nova_imagem_2 = resize_image(imagem_2, height_factor=0.6)
+nova_imagem = resize_image(imagem_1, width_factor=0.9)
+#nova_imagem = resize_image(imagem_2, height_factor=0.6)
 
 # O resultado:
-plt.imshow(nova_imagem_1)
+plt.imshow(nova_imagem)
 plt.show()
