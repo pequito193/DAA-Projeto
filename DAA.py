@@ -4,6 +4,18 @@ import numpy as np
 import PIL as pillow
 
 class SeamCarving:
+    # 2 - Representação dos dados
+    # PERGUNTA: Como está a representar a energia dos pixels no seu grafo?
+    # RESPOSTA: A energia dos pixeis é guardada numa matriz, em que cada valor representa o gradiente do pixel relativo à suas cores RGB.
+    # PERGUNTA: Qual foi o critério para esta escolha?
+    # RESPOSTA: Foi a representação que considerámos mais simples de implementar.
+    # PERGUNTA: Que tipo de grafo representa o problema em questão?
+    # RESPOSTA: O grafo é representado por uma matriz, onde cada pixel é um nó e as arestas são os pixels adjacentes. A energia de cada pixel é o peso da aresta.
+    # PERGUNTA: Qual é a representação computacional de grafo que está a utilizar? Por exemplo, matriz de adjacência, lista/mapa de adjacências ou uma outra alternativa?
+    # RESPOSTA: Estamos a usar uma matriz de adjacência.
+    # PERGUNTA: Identifique as vantagens e desvantagens da sua representação de grafo escolhida e os critérios utilizados para a sua escolha.
+    # RESPOSTA: Foi a representação que considerámos mais simples de implementar, apesar de poder não ser a mais eficiente a nível de execução.
+
     # CONSTRUTOR
     def __init__(self, image: np.ndarray):
         self.image = image
@@ -25,6 +37,7 @@ class SeamCarving:
         # A complexidade em relação ao tempo é O(altura*largura), porque percorremos cada pixel da imagem e calculamos o seu gradiente.
         # Podemos concluir que a complexidade é linear em relação ao número de pixels da imagem.
         # A complexidade em relação ao espaço é O(altura*largura), porque armazenamos a matriz de energia com o mesmo tamanho da imagem original.
+        # (As variáveis usadas nos passos intermédios são negligenciáveis)
         for y in range(1, self.height - 1):
             for x in range(1, self.width - 1):
                 # Calcula o gradiente em x
@@ -49,6 +62,8 @@ class SeamCarving:
         cost = np.copy(self.energy_map)
         path = np.zeros((self.height, self.width), dtype=np.int32)
         
+        # 3.3.3 - Análise da complexidade
+        # A complexidade do nosso código é O(altura*largura), porque percorremos cada pixel da imagem e calculamos o seu custo, e adicionamos o mais barato ao path.
         for y in range(1, self.height):
             for x in range(self.width):
                 # Para cada pixel, verificamos os 3 pixeis acima dele
@@ -68,7 +83,6 @@ class SeamCarving:
                     cost[y, x] += candidates[min]
                     path[y, x] = x - 1 + min
         
-        # Vamos a procura do caminho de menor energia
         seam = np.zeros(self.height, dtype=np.int32)
         seam[-1] = np.argmin(cost[-1, :])
         
@@ -82,6 +96,9 @@ class SeamCarving:
     def remove_vertical_seam(self, seam):
         # Criamos uma nova imagem com um pixel a menos de largura (largura porque quando queremos reduzir a altura, rodamos a imagem 90 graus)
         new_image = np.zeros((self.height, self.width - 1, 3), dtype=self.image.dtype)
+
+        # 3.4.2 - Análise da complexidade
+        # Este algoritmo tem complexidade O(largura) (apesar da função em si só ser chamada uma vez de cada vez, a função de teste vai chamá-la várias vezes, por isso consideramos a complexidade total), visto que irá remover 1 pixel de largura de cada vez.
         
         # Copiamos a imagem original menos a seam que queremos remover
         for y in range(self.height):
@@ -137,12 +154,28 @@ imagem_2 = mpimg.imread("img-brent-cox-unsplash.jpg")
 energyMap_1 = get_energy_map(imagem_1)
 energyMap_2 = get_energy_map(imagem_2)
 
+# 4.2 // 4.3
 nova_imagem_1 = resize_image(imagem_1, width_factor=0.7)
 nova_imagem_2 = resize_image(imagem_2, height_factor=0.6)
 
 # O resultado:
+#plt.imshow(energyMap_1)
+#plt.show()
+
+#plt.imshow(energyMap_2)
+#plt.show()
+
 plt.imshow(nova_imagem_1)
 plt.show()
 
 plt.imshow(nova_imagem_2)
 plt.show()
+
+# 5 - Questões Éticas
+# 5.1 - Se colaborou com alguém fora do seu grupo, indique aqui os respetivos nomes:
+# RESPOSTA: Não houve nenhuma colaboração com ninguém fora do nosso grupo que passasse de discussão geral sobre como organizar o trabalho e dúvidas gerais. Toda a implementação foi feita por nós.
+# 5.2 - Deve citar todas as fontes utilizadas fora do material da UC:
+# RESPOSTA:
+# - https://en.wikipedia.org/wiki/Seam_carving
+# - https://www.w3schools.com/python/
+# - https://www.w3schools.com/python/numpy/
